@@ -1,0 +1,19 @@
+{
+   "name": "com.adammyhre.unity-event-bus",
+   "version": "1.0.0",
+   "displayName": "Unity-Event-Bus",
+   "description": "This EventBus system provides a way to create decoupled architectures in Unity projects. It allows communication between different parts of an application without requiring direct references.",
+   "unity": "2022.3",
+   "dependencies": {},
+   "keywords": [
+      "events",
+      "eventbus",
+      "communication",
+      "patterns",
+      "utility"
+   ],
+   "author": {
+      "name": "Adam Mhyre",
+      "url": "https://www.youtube.com/@git-amend"
+   }
+}
