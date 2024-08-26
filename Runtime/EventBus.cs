@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace UnityEventBus {
     public static class EventBus<T> where T : IEvent {
@@ -16,7 +15,6 @@ namespace UnityEventBus {
         }
 
         static void Clear() {
-            Debug.Log($"Clearing {typeof(T).Name} bindings");
             bindings.Clear();
         }
     }
