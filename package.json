@@ -4,7 +4,9 @@
    "displayName": "Unity-Event-Bus",
    "description": "This EventBus system provides a way to create decoupled architectures in Unity projects. It allows communication between different parts of an application without requiring direct references.",
    "unity": "2022.3",
-   "dependencies": {},
+   "dependencies": {
+      "com.domybest.mybox": "git@github.com:MariusGr/MyBox.git"
+   },
    "keywords": [
       "events",
       "eventbus",

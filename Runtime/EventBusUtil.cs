@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Reflection;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+
+# if UNITY_EDITOR
+using MyBox;
+#endif
 
 namespace UnityEventBus {
     /// <summary>
@@ -11,6 +16,34 @@ namespace UnityEventBus {
     public static class EventBusUtil {
         public static IReadOnlyList<Type> EventTypes { get; set; }
         public static IReadOnlyList<Type> EventBusTypes { get; set; }
+
+        private static readonly Dictionary<string, Action> _eventRaisers = new();
+
+        private static IEnumerable<Type> GetEventTypes() {
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(p => typeof(IEvent).IsAssignableFrom(p) && !p.IsInterface && !p.IsAbstract);
+        }
+
+        private static void Raise<T>() where T : IEvent, new() => EventBus<T>.Raise(new T());
+
+        static EventBusUtil()
+        {
+            foreach (var type in GetEventTypes())
+            {
+                typeof(EventBusUtil).GetMethod(nameof(Raise), BindingFlags.Static | BindingFlags.NonPublic)
+                    .MakeGenericMethod(type)
+                    .Invoke(null, new object[0]);
+            }
+        }
+
+        public static void RaiseEvent(string eventName)
+        {
+            if (_eventRaisers.TryGetValue(eventName, out var raiseEvent))
+                raiseEvent();
+            else
+                Debug.LogError($"Event {eventName} not found");
+        }
         
     #if UNITY_EDITOR
         public static PlayModeStateChange PlayModeState { get; set; }
@@ -36,6 +69,15 @@ namespace UnityEventBus {
                 ClearAllBuses();
             }
         }
+
+        public static LabelValuePair[] GetEventOptions()
+        {
+            var eventOptions = GetEventTypes().Select(type => new LabelValuePair(type.Name, type.Name)).ToArray();
+            eventOptions = eventOptions.OrderBy(option => option.Label).ToArray();
+            var optionsWithNone = new List<LabelValuePair> {new LabelValuePair("None", "")};
+            optionsWithNone.AddRange(eventOptions);
+            return optionsWithNone.ToArray();
+        }
     #endif
 
         /// <summary>
@@ -52,7 +94,7 @@ namespace UnityEventBus {
         }
 
         static List<Type> InitializeAllBuses() {
-            List<Type> eventBusTypes = new List<Type>();
+            List<Type> eventBusTypes = new();
             
             var typedef = typeof(EventBus<>);
             foreach (var eventType in EventTypes) {
