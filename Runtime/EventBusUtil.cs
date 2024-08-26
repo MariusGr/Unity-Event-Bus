@@ -31,9 +31,8 @@ namespace UnityEventBus {
         {
             foreach (var type in GetEventTypes())
             {
-                typeof(EventBusUtil).GetMethod(nameof(Raise), BindingFlags.Static | BindingFlags.NonPublic)
-                    .MakeGenericMethod(type)
-                    .Invoke(null, new object[0]);
+                var genericMethod = typeof(EventBusUtil).GetMethod(nameof(Raise), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(type);
+                _eventRaisers.Add(type.Name, () => genericMethod.Invoke(null, new object[0]));
             }
         }
 
