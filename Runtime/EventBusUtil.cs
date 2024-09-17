@@ -19,8 +19,8 @@ namespace UnityEventBus
         public static IReadOnlyList<Type> EventTypes { get; set; }
         public static IReadOnlyList<Type> EventBusTypes { get; set; }
 
-        private static readonly Dictionary<string, Action> _eventRaisers = new();
-        private static readonly Dictionary<string, Action<Action>> _eventRegisterers = new();
+        private static readonly Dictionary<string, Action<IEvent>> _eventRaisers = new();
+        private static readonly Dictionary<string, Action<Action<IEvent>>> _eventRegisterers = new();
 
         private static IEnumerable<Type> GetEventTypes()
         {
@@ -29,7 +29,7 @@ namespace UnityEventBus
                 .Where(p => typeof(IEvent).IsAssignableFrom(p) && !p.IsInterface && !p.IsAbstract);
         }
 
-        private static void Raise<T>() where T : IEvent, new() => EventBus<T>.Raise(new T());
+        private static void Raise<T>(T eventOject) where T : IEvent, new() => EventBus<T>.Raise(eventOject);
         private static void Register<T>(Action onEvent) where T : IEvent, new() => EventBus<T>.Register(new EventBinding<T>(onEvent));
 
         static EventBusUtil()
@@ -37,22 +37,22 @@ namespace UnityEventBus
             foreach (var type in GetEventTypes())
             {
                 var genericRaise = typeof(EventBusUtil).GetMethod(nameof(Raise), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(type);
-                _eventRaisers.Add(type.Name, () => genericRaise.Invoke(null, new object[0]));
+                _eventRaisers.Add(type.Name, e => genericRaise.Invoke(null, new object[] { e }));
 
                 var genericRegister = typeof(EventBusUtil).GetMethod(nameof(Register), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(type);
                 _eventRegisterers.Add(type.Name, onEvent => genericRegister.Invoke(null, new object[] { onEvent }));
             };
         }
 
-        public static void RaiseEvent(string eventName)
+        public static void RaiseEvent(string eventName, IEvent eventObject)
         {
             if (_eventRaisers.TryGetValue(eventName, out var raiseEvent))
-                raiseEvent();
+                raiseEvent(eventObject);
             else
                 Debug.LogError($"Event {eventName} not found");
         }
 
-        public static void RegisterEvent(string eventName, Action onEvent)
+        public static void RegisterEvent(string eventName, Action<IEvent> onEvent)
         {
             if (_eventRegisterers.TryGetValue(eventName, out var registerEvent))
                 registerEvent(onEvent);
