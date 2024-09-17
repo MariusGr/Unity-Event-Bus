@@ -30,7 +30,7 @@ namespace UnityEventBus
         }
 
         private static void Raise<T>(T eventOject) where T : IEvent, new() => EventBus<T>.Raise(eventOject);
-        private static void Register<T>(Action onEvent) where T : IEvent, new() => EventBus<T>.Register(new EventBinding<T>(onEvent));
+        private static void Register<T>(Action<IEvent> onEvent) where T : IEvent, new() => EventBus<T>.Register(new EventBinding<T>(new Action<T>(e => onEvent(e))));
 
         static EventBusUtil()
         {
