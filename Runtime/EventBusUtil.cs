@@ -36,11 +36,12 @@ namespace UnityEventBus
         {
             foreach (var type in GetEventTypes())
             {
+                string eventName = $"{type.Namespace}.{type.Name}";
                 var genericRaise = typeof(EventBusUtil).GetMethod(nameof(Raise), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(type);
-                _eventRaisers.Add(type.Name, e => genericRaise.Invoke(null, new object[] { e }));
+                _eventRaisers.Add(eventName, e => genericRaise.Invoke(null, new object[] { e }));
 
                 var genericRegister = typeof(EventBusUtil).GetMethod(nameof(Register), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(type);
-                _eventRegisterers.Add(type.Name, onEvent => genericRegister.Invoke(null, new object[] { onEvent }));
+                _eventRegisterers.Add(eventName, onEvent => genericRegister.Invoke(null, new object[] { onEvent }));
             };
         }
 
