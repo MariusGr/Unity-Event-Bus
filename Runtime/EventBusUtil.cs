@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using EinheitsKiste;
 
 # if UNITY_EDITOR
 using MyBox;
@@ -45,20 +46,25 @@ namespace UnityEventBus
             };
         }
 
-        public static void RaiseEvent(string eventName, IEvent eventObject)
+        public static void RaiseEvent(Type eventType, IEvent eventObject)
+            => RaiseEvent(eventType.GetNameWithNamespace(), eventObject);
+        public static void RegisterEvent(Type eventType, Action<IEvent> onEvent)
+            => RegisterEvent(eventType.GetNameWithNamespace(), onEvent);
+
+        public static void RaiseEvent(string eventTypeName, IEvent eventObject)
         {
-            if (_eventRaisers.TryGetValue(eventName, out var raiseEvent))
+            if (_eventRaisers.TryGetValue(eventTypeName, out var raiseEvent))
                 raiseEvent(eventObject);
             else
-                Debug.LogError($"Event {eventName} not found");
+                Debug.LogError($"Event {eventTypeName} not found");
         }
 
-        public static void RegisterEvent(string eventName, Action<IEvent> onEvent)
+        public static void RegisterEvent(string eventTypeName, Action<IEvent> onEvent)
         {
-            if (_eventRegisterers.TryGetValue(eventName, out var registerEvent))
+            if (_eventRegisterers.TryGetValue(eventTypeName, out var registerEvent))
                 registerEvent(onEvent);
             else
-                Debug.LogError($"Event {eventName} not found");
+                Debug.LogError($"Event {eventTypeName} not found");
         }
 
 #if UNITY_EDITOR
@@ -91,7 +97,7 @@ namespace UnityEventBus
 
         public static LabelValuePair[] GetEventOptions()
         {
-            var eventOptions = GetEventTypes().Select(type => new LabelValuePair(type.Name, type.Name)).ToArray();
+            var eventOptions = GetEventTypes().Select(type => new LabelValuePair(type.GetNameWithNamespace(), type.GetNameWithNamespace())).ToArray();
             eventOptions = eventOptions.OrderBy(option => option.Label).ToArray();
             var optionsWithNone = new List<LabelValuePair> { new LabelValuePair("None", "") };
             optionsWithNone.AddRange(eventOptions);
