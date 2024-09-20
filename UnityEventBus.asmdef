@@ -2,7 +2,8 @@
     "name": "UnityEventBus",
     "rootNamespace": "",
     "references": [
-        "MyBox"
+        "MyBox",
+        "EinheitsKiste"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

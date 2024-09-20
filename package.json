@@ -5,7 +5,8 @@
    "description": "This EventBus system provides a way to create decoupled architectures in Unity projects. It allows communication between different parts of an application without requiring direct references.",
    "unity": "2022.3",
    "dependencies": {
-      "com.domybest.mybox": "git@github.com:MariusGr/MyBox.git"
+      "com.domybest.mybox": "git@github.com:MariusGr/MyBox.git",
+      "com.mariusgripp.einheits-kiste": "git@github.com/MariusGr/einheits-kiste.git"
    },
    "keywords": [
       "events",
