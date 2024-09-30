@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace UnityEventBus
 {
@@ -17,12 +18,22 @@ namespace UnityEventBus
             {
                 if (bindings.Contains(binding))
                 {
+                    if (binding == null)
+                    {
+                        Debug.LogError($"Binding for {nameof(T)} is null");
+                        continue;
+                    }
+                    if (binding.OnEvent == null)
+                    {
+                        Debug.LogError($"OnEvent for {nameof(T)} is null");
+                        continue;
+                    }
                     binding.OnEvent.Invoke(@event);
                     binding.OnEventNoArgs.Invoke();
                 }
             }
-        }
 
-        static void Clear() => bindings.Clear();
+            static void Clear() => bindings.Clear();
+        }
     }
 }
