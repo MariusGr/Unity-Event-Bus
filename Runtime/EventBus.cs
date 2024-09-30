@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace UnityEventBus {
     public static class EventBus<T> where T : IEvent {
@@ -9,6 +10,16 @@ namespace UnityEventBus {
 
         public static void Raise(T @event) {
             foreach (var binding in bindings) {
+                if (binding == null)
+                {
+                    Debug.LogError($"Binding for {nameof(T)} is null");
+                    continue;
+                }
+                if (binding.OnEvent == null)
+                {
+                    Debug.LogError($"OnEvent for {nameof(T)} is null");
+                    continue;
+                }
                 binding.OnEvent.Invoke(@event);
                 binding.OnEventNoArgs.Invoke();
             }
