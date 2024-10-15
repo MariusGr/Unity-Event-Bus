@@ -1,9 +1,12 @@
 ﻿using System;
 
 namespace UnityEventBus {
-    public interface IEventBinding<T> {
+    public interface IEventBinding<T> : IEventBinding {
         public Action<T> OnEvent { get; set; }
         public Action OnEventNoArgs { get; set; }
+    }
+
+    public interface IEventBinding {
     }
 
     public class EventBinding<T> : IEventBinding<T> where T : IEvent {

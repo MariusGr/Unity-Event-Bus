@@ -21,7 +21,8 @@ namespace UnityEventBus
         public static IReadOnlyList<Type> EventBusTypes { get; set; }
 
         private static readonly Dictionary<string, Action<IEvent>> _eventRaisers = new();
-        private static readonly Dictionary<string, Action<Action<IEvent>>> _eventRegisterers = new();
+        private static readonly Dictionary<string, Func<Action<IEvent>, IEventBinding>> _eventRegisterers = new();
+        private static readonly Dictionary<string, Action<IEventBinding>> _eventDeregisterers = new();
 
         private static IEnumerable<Type> GetEventTypes()
         {
@@ -31,7 +32,15 @@ namespace UnityEventBus
         }
 
         private static void Raise<T>(T eventOject) where T : IEvent, new() => EventBus<T>.Raise(eventOject);
-        private static void Register<T>(Action<IEvent> onEvent) where T : IEvent, new() => EventBus<T>.Register(new EventBinding<T>(new Action<T>(e => onEvent(e))));
+        private static EventBinding<T> Register<T>(Action<IEvent> onEvent) where T : IEvent, new()
+        {
+            var binding = new EventBinding<T>(new Action<T>(e => onEvent(e)));
+            EventBus<T>.Register(binding);
+            return binding;
+        }
+
+        private static void Deregister<T>(EventBinding<T> eventBinding) where T : IEvent, new()
+            => EventBus<T>.Deregister(eventBinding);
 
         static EventBusUtil()
         {
@@ -42,14 +51,17 @@ namespace UnityEventBus
                 _eventRaisers.Add(eventName, e => genericRaise.Invoke(null, new object[] { e }));
 
                 var genericRegister = typeof(EventBusUtil).GetMethod(nameof(Register), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(type);
-                _eventRegisterers.Add(eventName, onEvent => genericRegister.Invoke(null, new object[] { onEvent }));
+                _eventRegisterers.Add(eventName, onEvent => (IEventBinding)genericRegister.Invoke(null, new object[] { onEvent }));
+
+                var genericDeregister = typeof(EventBusUtil).GetMethod(nameof(Deregister), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(type);
+                _eventDeregisterers.Add(eventName, onEvent => genericDeregister.Invoke(null, new object[] { onEvent }));
             };
         }
 
+        public static void RaiseEvent(IEvent eventObject)
+            => RaiseEvent(eventObject.GetType(), eventObject);
         public static void RaiseEvent(Type eventType, IEvent eventObject)
             => RaiseEvent(eventType.GetNameWithNamespace(), eventObject);
-        public static void RegisterEvent(Type eventType, Action<IEvent> onEvent)
-            => RegisterEvent(eventType.GetNameWithNamespace(), onEvent);
 
         public static void RaiseEvent(string eventTypeName, IEvent eventObject)
         {
@@ -59,10 +71,25 @@ namespace UnityEventBus
                 Debug.LogError($"Event {eventTypeName} not found");
         }
 
-        public static void RegisterEvent(string eventTypeName, Action<IEvent> onEvent)
+        public static IEventBinding RegisterEvent(Type eventType, Action<IEvent> onEvent)
+            => RegisterEvent(eventType.GetNameWithNamespace(), onEvent);
+
+        public static IEventBinding RegisterEvent(string eventTypeName, Action<IEvent> onEvent)
         {
             if (_eventRegisterers.TryGetValue(eventTypeName, out var registerEvent))
-                registerEvent(onEvent);
+                return registerEvent(onEvent);
+
+            Debug.LogError($"Event {eventTypeName} not found");
+            return null;
+        }
+
+        public static void DeregisterEvent(Type eventType, IEventBinding eventBinding)
+            => DeregisterEvent(eventType.GetNameWithNamespace(), eventBinding);
+
+        public static void DeregisterEvent(string eventTypeName, IEventBinding eventBinding)
+        {
+            if (_eventDeregisterers.TryGetValue(eventTypeName, out var deregisterEvent))
+                deregisterEvent(eventBinding);
             else
                 Debug.LogError($"Event {eventTypeName} not found");
         }
