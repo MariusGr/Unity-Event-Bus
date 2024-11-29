@@ -5,10 +5,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using EinheitsKiste;
-
-# if UNITY_EDITOR
 using MyBox;
-#endif
 
 namespace UnityEventBus
 {
@@ -121,6 +118,7 @@ namespace UnityEventBus
                 ClearAllBuses();
             }
         }
+#endif
 
         public static LabelValuePair[] GetEventOptions()
         {
@@ -130,7 +128,6 @@ namespace UnityEventBus
             optionsWithNone.AddRange(eventOptions);
             return optionsWithNone.ToArray();
         }
-#endif
 
         /// <summary>
         /// Initializes the EventBusUtil class at runtime before the loading of any scene.
