@@ -7,8 +7,17 @@ namespace UnityEventBus
     {
         static readonly HashSet<IEventBinding<T>> bindings = new HashSet<IEventBinding<T>>();
 
-        public static void Register(EventBinding<T> binding) => bindings.Add(binding);
-        public static void Deregister(EventBinding<T> binding) => bindings.Remove(binding);
+        public static void Register(EventBinding<T> binding)
+        {
+            if (binding == null) throw new System.ArgumentNullException($"{nameof(binding)} for {nameof(T)} cannot be null");
+            bindings.Add(binding);
+        }
+
+        public static void Deregister(EventBinding<T> binding)
+        {
+            if (binding == null) throw new System.ArgumentNullException($"{nameof(binding)} for {nameof(T)} cannot be null");
+            bindings.Remove(binding);
+        }
 
         public static void Raise(T @event)
         {
@@ -18,16 +27,6 @@ namespace UnityEventBus
             {
                 if (bindings.Contains(binding))
                 {
-                    if (binding == null)
-                    {
-                        Debug.LogError($"Binding for {nameof(T)} is null");
-                        continue;
-                    }
-                    if (binding.OnEvent == null)
-                    {
-                        Debug.LogError($"OnEvent for {nameof(T)} is null");
-                        continue;
-                    }
                     binding.OnEvent.Invoke(@event);
                     binding.OnEventNoArgs.Invoke();
                 }

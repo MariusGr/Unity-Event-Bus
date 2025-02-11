@@ -13,9 +13,14 @@ namespace UnityEventBus {
         Action<T> onEvent = _ => { };
         Action onEventNoArgs = () => { };
 
-        Action<T> IEventBinding<T>.OnEvent {
+        Action<T> IEventBinding<T>.OnEvent
+        {
             get => onEvent;
-            set => onEvent = value;
+            set
+            {
+                if (onEvent == null) throw new ArgumentNullException($"{nameof(IEventBinding<T>.OnEvent)} for {nameof(T)} cannot be null");
+                onEvent = value;
+            }
         }
 
         Action IEventBinding<T>.OnEventNoArgs {
