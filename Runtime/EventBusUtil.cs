@@ -57,6 +57,12 @@ namespace UnityEventBus
 
         public static void RaiseEvent(IEvent eventObject)
             => RaiseEvent(eventObject.GetType(), eventObject);
+
+        public static void RaiseEvent(Type type)
+                   => RaiseEvent(type, type.GetConstructors(BindingFlags.Public
+                                                                        | BindingFlags.NonPublic
+                                                                        | BindingFlags.Instance).First().Invoke(null) as IEvent);
+
         public static void RaiseEvent(Type eventType, IEvent eventObject)
             => RaiseEvent(eventType.GetNameWithNamespace(), eventObject);
 
